@@ -1,8 +1,20 @@
 import express from 'express'
-import user from "../models/usersmodels";
+import userModel from "../models/usersmodels";
+import jwt from "jsonwebtoken";
+import validator from "validator";
+import bcrypt from "bcrypt";
 const app = express()
 
-export const Register = async () => {
+
+
+const genrateToken = (userId) => {
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+        expiresIn: "1d"
+    })
+    return token
+}
+
+export const Register = async (req, res) => {
     try {
         // Check if user already exists
         const { name, password, email } = req.body;
