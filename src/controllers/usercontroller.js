@@ -53,8 +53,7 @@ export const Register = async (req, res) => {
         })
 
         const user = await newUser.save()
-        const token = createToken(user._id);
-
+        const token = genrateToken(user._id)
         res.json({
             success: true,
             message: "User registered successfully",
@@ -64,6 +63,69 @@ export const Register = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: true,
+            message: "Error"
+        })
+    }
+}
+
+//POST : //api/users/login
+
+export const Login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await userModel.findone({ email })
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        const isPasswordMatched = await bcrypt.compare(password, user.password)
+        if (!isPasswordMatched) {
+            return res.json({
+                success: false,
+                message: "Invalid credentials"
+            })
+        }
+
+        const token = genrateToken(user._id)
+        res.json({
+            success: true,
+            message: "User logged in successfully",
+            data: user,
+            token: token
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error"
+        })
+    }
+}
+
+
+
+//GET: getting user id
+
+export const getUser = async (req, res) => {
+    try {
+        const user = await userModel.findById(req.user.id)
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+        res.status(200).json({
+            success: true,
+            message: "User found successfully",
+            data: user
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
             message: "Error"
         })
     }
