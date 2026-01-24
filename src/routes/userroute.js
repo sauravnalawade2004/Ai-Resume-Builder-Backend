@@ -6,6 +6,7 @@ const UserRouter = express.Router;
 
 UserRouter.post('/signup', Register);
 UserRouter.post('/login', Login);
-UserRouter.get('/data', getUser);
+UserRouter.get('/data', authmiddleware, getUser);
+
 
 export default UserRouter;
