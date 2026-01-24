@@ -1,4 +1,6 @@
 import { resume } from '../models/resumemodel.js'
+import imagekit from '../config/imagekit.js'
+import fs from 'fs'
 
 //GET : /api/users/resume
 
@@ -102,6 +104,52 @@ export const getResumeById = async (req, res) => {
         })
     } catch (error) {
         return res.status(400).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
+//update user resume by id 
+//PUT : /api/resumes/update
+
+export const updateResumeById = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { resumeId, resumeData, removeBackground } = req.body;
+        const image = req.file;
+
+        let resumeDataCopy = JSON.parse(resumeData);
+
+        if (image) {
+
+            const imageBufferData = fs.createReadStream(image.path);
+            const response = imagekit.files.upload({
+                file: imageBufferData,
+                fileName: image.originalname,
+                folder: `/resume/${userId}`,
+                tags: ["resume", "image"],
+                transformation: {
+                    pre: 'w-300, h-300, fo-face, z-0.75' + (removeBackground ? ',e-bgremove' : '')
+                }
+            });
+            resumeDataCopy.personal_info.image = response.url;
+        }
+
+        const resume = await resume.findByIdAndUpdate({ userId, _id: resumeId }, resumeDataCopy, { new: true });
+        if (!resume) {
+            return res.status(404).json({
+                success: false,
+                message: "Resume Not Found"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Resume Updated Successfully",
+            data: resume
+        })
+    } catch (error) {
+        res.status(400).json({
             success: false,
             message: error.message
         })
