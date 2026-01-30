@@ -1,8 +1,10 @@
 import express from "express";
-import { connectDatabase } from "./src/config/db";
-import UserRouter from "./src/routes/userroute";
+import { connectDatabase } from "./src/config/db.js";
+import UserRouter from "./src/routes/userroute.js";
 import cors from "cors";
-import ResumeRouter from "./src/routes/resumeroute";
+import ResumeRouter from "./src/routes/resumeroute.js";
+import dotenv from 'dotenv'
+dotenv.config()
 
 const PORT = 3000;
 
