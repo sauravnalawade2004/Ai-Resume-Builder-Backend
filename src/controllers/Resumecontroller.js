@@ -1,4 +1,4 @@
-import { resume } from '../models/resumemodel.js'
+import Resume from '../models/resumemodel.js'
 import imagekit from '../config/imagekit.js'
 import fs from 'fs'
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserResume, createResume, DeleteResume } from "../controllers/Resumecontroller.js";
+import { getUserResume, createResume, DeleteResume, getResumeById, updateResumeById } from "../controllers/Resumecontroller.js";
 import { authmiddleware } from "../middleware/authmiddleware.js";
 import upload from "../config/multer.js";
 

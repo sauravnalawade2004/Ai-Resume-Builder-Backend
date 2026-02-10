@@ -1,5 +1,5 @@
 import express from 'express'
-import userModel from "../models/usersmodels.js";
+import { userModel } from "../models/usersmodels.js";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import bcrypt from "bcrypt";
@@ -16,9 +16,13 @@ const genrateToken = (userId) => {
 
 export const Register = async (req, res) => {
     try {
+        console.log("Request body:", req.body);
         // Check if user already exists
-        const { name, password, email } = req.body;
+        const { username, password, email } = req.body;
+        console.log("Checking if user exists...");
         const exists = await userModel.findOne({ email });
+        console.log("User exists:", exists);
+
         if (exists) {
             return res.json({
                 success: false,
@@ -26,6 +30,7 @@ export const Register = async (req, res) => {
             })
         }
 
+        console.log("Validating email and password...");
         // Validating email format and strong password
         if (!validator.isEmail(email)) {
             return res.json({
@@ -41,19 +46,24 @@ export const Register = async (req, res) => {
             })
         }
 
+        console.log("Hashing password...");
         // Hashing user password 
         const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        console.log("Creating new user...");
         // Creating new user
         const newUser = new userModel({
-            name: name,
+            name: username,
             email: email,
             password: hashedPassword
         })
 
         const user = await newUser.save()
+        console.log("User created:", user);
+
         const token = genrateToken(user._id)
+        console.log("Token generated:", token);
         res.json({
             success: true,
             message: "User registered successfully",
@@ -62,8 +72,9 @@ export const Register = async (req, res) => {
         })
     } catch (error) {
         res.status(500).json({
-            success: true,
-            message: "Error"
+            success: false,
+            message: "Error registering user",
+            error: error.message
         })
     }
 }

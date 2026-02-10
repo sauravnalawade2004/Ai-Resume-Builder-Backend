@@ -90,4 +90,6 @@ const ResumeSchema = new mongoose.Schema({
     skills: [String],
 }, { timestamps: true, minimize: false });
 
-export const Resume = mongoose.model("Resume", ResumeSchema);
+const Resume = mongoose.model("Resume", ResumeSchema);
+
+export default Resume;
