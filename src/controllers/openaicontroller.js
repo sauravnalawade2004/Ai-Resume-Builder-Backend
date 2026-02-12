@@ -29,8 +29,30 @@ const openAi = async (req, res) => {
 
 const EnhanceProSummary = async (req, res) => {
      try {
-        
+        const {usercontent} = req.body;
+
+        if (!usercontent ) {
+            return res.status(400).json({
+                message : "Missing required field",
+                success: "False"
+            })
+        }
+
+        await ai.chat.completions.create({
+            model: "gemini-2.0-flash",
+            messages: [
+                { role: "system", content: "you are a helpful assistant"},
+                {
+                    role: "user",
+                    content: "Explain to me how Ai works"
+                }
+            ],
+        })
      } catch (error) {
+        res.status(400).json({
+            message: "error in summary",
+            success : "False"
+        })
         
      }
 }
