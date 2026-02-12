@@ -24,4 +24,15 @@ const openAi = async (req, res) => {
     }
 }
 
+//controller for wnchancing a resume's professional summaery 
+//POST : app/ai/enhance-pro-sum
+
+const EnhanceProSummary = async (req, res) => {
+     try {
+        
+     } catch (error) {
+        
+     }
+}
+
 export default openAi
