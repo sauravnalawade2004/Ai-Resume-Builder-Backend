@@ -14,6 +14,8 @@ const genrateToken = (userId) => {
     return token
 }
 
+//POST : //api/users/signup
+
 export const Register = async (req, res) => {
     try {
         console.log("Request body:", req.body);
