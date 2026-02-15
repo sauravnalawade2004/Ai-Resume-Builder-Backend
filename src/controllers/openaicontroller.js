@@ -1,4 +1,5 @@
 import openai from "../config/openai";
+import Resume from "../models/resumemodel";
 
 
 const openAi = async (req, res) => {
@@ -28,20 +29,20 @@ const openAi = async (req, res) => {
 //POST : app/ai/enhance-pro-sum
 
 export const EnhanceProSummary = async (req, res) => {
-     try {
-        
-const {usercontent} = req.body;
+    try {
 
-        if (!usercontent ) {
+        const { usercontent } = req.body;
+
+        if (!usercontent) {
             return res.status(400).json({
-                message : "Missing required field",
+                message: "Missing required field",
                 success: "False"
             })
         }
-       const response =  await ai.chat.completions.create({
+        const response = await ai.chat.completions.create({
             model: "gemini-2.0-flash",
             messages: [
-                { role: "system", content: "you are a helpful assistant in resume writing, Your task is to enhance the professional summary of a resume. The summary should be 1-2 sentences also highlighting key skills, experience, and career objectives. make it compelling and ATS_friendly. and only return text no options or anything else"},
+                { role: "system", content: "you are a helpful assistant in resume writing, Your task is to enhance the professional summary of a resume. The summary should be 1-2 sentences also highlighting key skills, experience, and career objectives. make it compelling and ATS_friendly. and only return text no options or anything else" },
                 {
                     role: "system",
                     content: usercontent
@@ -54,14 +55,14 @@ const {usercontent} = req.body;
             message: "Enhanced Professional Summary",
             data: response.choices[0].message.content
         })
-     } catch (error) {
+    } catch (error) {
         res.status(400).json({
-            enhancedSummary : null,
+            enhancedSummary: null,
             message: "error in summary",
-            success : "False"
+            success: "False"
         })
-        
-     }
+
+    }
 }
 
 
@@ -70,19 +71,21 @@ const {usercontent} = req.body;
 
 export const EnhanceJobDescription = async (req, res) => {
     try {
-        const {usercontent} = req.body;
+        const { usercontent } = req.body;
 
-        if (!usercontent ) {
+        if (!usercontent) {
             return res.status(400).json({
-                message : "Missing required field",
+                message: "Missing required field",
                 success: "False"
             })
         }
-        const response =  await ai.chat.completions.create({
+        const response = await ai.chat.completions.create({
             model: "gemini-2.0-flash",
             messages: [
-                { role: "system", 
-                    content: "You are an expert in resume writing. Your task in to enhance the job description of a resume. The job description should be only in 1-2 sentence also highlighting key responsibilities and achievements. Use action verbs and quantifiable results where possible. Make it ATS-friendly. and only return text no options or anything else."},
+                {
+                    role: "system",
+                    content: "You are an expert in resume writing. Your task in to enhance the job description of a resume. The job description should be only in 1-2 sentence also highlighting key responsibilities and achievements. Use action verbs and quantifiable results where possible. Make it ATS-friendly. and only return text no options or anything else."
+                },
                 {
                     role: "user",
                     content: usercontent
@@ -105,46 +108,120 @@ export const EnhanceJobDescription = async (req, res) => {
 //controller for  uploading a resume to the databse 
 //POST : app/ai/uploade-resume
 
-export const UploadeResume = async(req, res) => {
-       try {
-           const { resumeText, title } = req.body;
-           const userId = req.userId;
+export const UploadeResume = async (req, res) => {
+    try {
+        const { resumeText, title } = req.body;
+        const userId = req.userId;
 
-           if (!resumeText || !title) {
+        if (!resumeText || !title) {
             return res.status(400).json({
-                message : "Missing required field",
+                message: "Missing required field",
                 success: "False"
             })
-           }
+        }
 
-           const systemPrompt = "You are an expert AI Ageent to extract data from resume."
+        const systemPrompt = "You are an expert AI Ageent to extract data from resume."
 
-           const userPrompt = `extract data from this resume: ${resumeText}`
+        const userPrompt = `extract data from this resume: ${resumeText} 
+           
+           Provide data in the following JSON format with no additional text before or after: 
+           
+           {
+        professional_summary: {
+        type: String,
+        default: ""
+    },
+    skills: [{
+        skill: String,
+        level: String
+    }],
+    personal_info: {
+        image: {
+            type: String,
+            default: ""
+        },
+        fullName: {
+            type: String,
+            default: ""
+        },
+        prodession: {
+            type: String,
+            default: ""
+        },
+        email: {
+            type: String,
+            default: ""
+        },
+        phone: {
+            type: String,
+            default: ""
+        },
+        location: {
+            type: String,
+            default: ""
+        },
+        linkedin: {
+            type: String,
+            default: ""
+        },
+        github: {
+            type: String,
+            default: ""
+        },
+        summary: String,
+    },
+    education: [{
+        institution: { type: String },
+        degree: { type: String },
+        startDate: { type: String },
+        endDate: { type: String },
+        gpa: { type: String },
+        description: { type: String }
+    }],
+    experience: [{
+        company: { type: String },
+        position: { type: String },
+        startDate: { type: String },
+        endDate: { type: String },
+        description: { type: String },
+        is_current: { type: Boolean }
+    }],
+    projects: [{
+        name: { type: String },
+        type: { String },
+        description: { String }
+    }],}`
 
-           const response = await ai.chat.completions.create({
+        const response = await ai.chat.completions.create({
             model: "gemini-2.0-flash",
             messages: [
-                { role: "system", content: systemPrompt},
+                { role: "system", content: systemPrompt },
                 {
                     role: "user",
                     content: userPrompt,
                 }
             ],
-            response_format: {type: 'json_object'}
-           })
-           const extractedData = response.choices[0].message.content;
-           return res.status(200).json({
+            response_format: { type: 'json_object' }
+        })
+        const extractedData = response.choices[0].message.content;
+        const parsedData = JSON.parse(extractedData);
+        const newResume = await Resume.create({
+            userId,
+            title,
+            ...parsedData
+        })
+        return res.status(200).json({
             success: true,
             message: "Resume Uploaded Successfully",
-            data: extractedData
-           })
-       } catch (error) {
+            data: newResume
+        })
+    } catch (error) {
         return res.status(400).json({
             success: false,
             message: error.message
         })
-       }
-}         
+    }
+}
 
 
 
